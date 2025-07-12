@@ -1,0 +1,109 @@
+networks:
+  cassandra_network:
+    driver: bridge
+
+services:
+  cassandra-node1:
+    image: cassandra:latest
+    container_name: cassandra-node1
+    networks:
+      - cassandra_network
+    ports:
+      - "9042:9042" # Expose CQL port for client connections
+    environment:
+      - CASSANDRA_CLUSTER_NAME=MyCassandraCluster
+      - CASSANDRA_SEEDS=cassandra-node1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-node1 # Use container name for broadcast     
+      - JVM_EXTRA_OPTS=-Xms512M -Xmx1024M
+      - CASSANDRA_NUM_TOKENS=1
+    mem_limit: 2g
+    volumes:
+      - ./volume-data/node1:/var/lib/cassandra # Persist data
+    healthcheck:
+      test: [ "CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe cluster;' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  cassandra-node2:
+    image: cassandra:latest
+    container_name: cassandra-node2
+    networks:
+      - cassandra_network
+    ports:
+      - "9043:9042" # Expose CQL port for client connections      
+    environment:
+      - CASSANDRA_CLUSTER_NAME=MyCassandraCluster
+      - CASSANDRA_SEEDS=cassandra-node1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-node2
+      - JVM_EXTRA_OPTS=-Xms512M -Xmx1024M
+      - CASSANDRA_NUM_TOKENS=1
+    mem_limit: 2g
+    volumes:
+      - ./volume-data/node2:/var/lib/cassandra # Persist data
+    healthcheck:
+      test: [ "CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe cluster;' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      cassandra-node1:
+        condition: service_healthy
+
+  cassandra-node3:
+    image: cassandra:latest
+    container_name: cassandra-node3
+    networks:
+      - cassandra_network
+    ports:
+      - "9044:9042" # Expose CQL port for client connections      
+    environment:
+      - CASSANDRA_CLUSTER_NAME=MyCassandraCluster
+      - CASSANDRA_SEEDS=cassandra-node1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-node3
+      - JVM_EXTRA_OPTS=-Xms512M -Xmx1024M
+      - CASSANDRA_NUM_TOKENS=1
+    mem_limit: 2g
+    volumes:
+      - ./volume-data/node3:/var/lib/cassandra # Persist data
+    healthcheck:
+      test: [ "CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe cluster;' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      cassandra-node1:
+        condition: service_healthy      
+  
+  cassandra-node4:
+    image: cassandra:latest
+    container_name: cassandra-node4
+    networks:
+      - cassandra_network
+    ports:
+      - "9045:9042" # Expose CQL port for client connections
+    environment:
+      - CASSANDRA_CLUSTER_NAME=MyCassandraCluster
+      - CASSANDRA_SEEDS=cassandra-node1, cassandra-node4
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-node4
+      - JVM_EXTRA_OPTS=-Xms512M -Xmx1024M
+      - CASSANDRA_NUM_TOKENS=1
+    mem_limit: 2g
+    volumes:
+      - ./volume-data/node4:/var/lib/cassandra # Persist data
+    healthcheck:
+      test: [ "CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe cluster;' || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      cassandra-node1:
+        condition: service_healthy
