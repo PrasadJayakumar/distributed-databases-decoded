@@ -2,6 +2,12 @@ networks:
   cassandra_network:
     driver: bridge
 
+volumes:
+  node1_data: # Volume for node1's data persistence
+  node2_data: # Volume for node2's data persistence
+  node3_data: # Volume for node3's data persistence
+  node4_data: # Volume for node4's data persistence
+
 services:
   cassandra-node1:
     image: cassandra:latest
@@ -20,7 +26,7 @@ services:
       - CASSANDRA_NUM_TOKENS=1
     mem_limit: 2g
     volumes:
-      - ./volume-data/node1:/var/lib/cassandra # Persist data
+      - node1_data:/var/lib/cassandra # Persist data
     healthcheck:
       test: [ "CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe cluster;' || exit 1" ]
       interval: 30s
@@ -44,7 +50,7 @@ services:
       - CASSANDRA_NUM_TOKENS=1
     mem_limit: 2g
     volumes:
-      - ./volume-data/node2:/var/lib/cassandra # Persist data
+      - node2_data:/var/lib/cassandra # Persist data
     healthcheck:
       test: [ "CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe cluster;' || exit 1" ]
       interval: 30s
@@ -71,7 +77,7 @@ services:
       - CASSANDRA_NUM_TOKENS=1
     mem_limit: 2g
     volumes:
-      - ./volume-data/node3:/var/lib/cassandra # Persist data
+      - node3_data:/var/lib/cassandra # Persist data
     healthcheck:
       test: [ "CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe cluster;' || exit 1" ]
       interval: 30s
@@ -98,7 +104,7 @@ services:
       - CASSANDRA_NUM_TOKENS=1
     mem_limit: 2g
     volumes:
-      - ./volume-data/node4:/var/lib/cassandra # Persist data
+      - node4_data/var/lib/cassandra # Persist data
     healthcheck:
       test: [ "CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe cluster;' || exit 1" ]
       interval: 30s

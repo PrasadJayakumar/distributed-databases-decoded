@@ -1,0 +1,75 @@
+# docker-compose.yml
+# This Docker Compose file sets up a 3-node etcd cluster using Bitnami images.
+# Each node is configured to communicate with the others to form a robust cluster.
+
+networks:
+  etcd-net: # Define a custom network for the etcd cluster
+    driver: bridge # Use the default bridge driver
+
+volumes:
+  etcd1_data: # Volume for etcd1's data persistence
+  etcd2_data: # Volume for etcd2's data persistence
+  etcd3_data: # Volume for etcd3's data persistence
+
+services:
+  etcd1:
+    image: bitnami/etcd:latest # Use the latest Bitnami etcd image
+    container_name: etcd1 # Assign a unique name to the container
+    networks:
+      - etcd-net # Connect to the custom network
+    ports:
+      - "2379:2379" # Map client port
+      - "2380:2380" # Map peer port
+    environment:
+      # Node-specific configuration
+      - ETCD_NAME=etcd1 # Name of this etcd member
+      - ETCD_INITIAL_CLUSTER_STATE=new # Indicate this is a new cluster
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd1:2380 # URL for peer communication
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380 # Listen on all interfaces for peer communication
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd1:2379 # URL for client communication
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379 # Listen on all interfaces for client communication
+      # Cluster-wide configuration (all nodes must have the same ETCD_INITIAL_CLUSTER)
+      - ETCD_INITIAL_CLUSTER=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      - ALLOW_NONE_AUTHENTICATION=yes # Allow unauthenticated access for simplicity in learning (NOT for production)
+    volumes:
+      - etcd1_data:/bitnami/etcd # Mount persistent volume for data
+
+  etcd2:
+    image: bitnami/etcd:latest
+    container_name: etcd2
+    networks:
+      - etcd-net
+    ports:
+      - "23790:2379" # Map client port (different host port to avoid conflict)
+      - "23800:2380" # Map peer port (different host port to avoid conflict)
+    environment:
+      - ETCD_NAME=etcd2
+      - ETCD_INITIAL_CLUSTER_STATE=new
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd2:2380
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd2:2379
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_INITIAL_CLUSTER=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      - ALLOW_NONE_AUTHENTICATION=yes
+    volumes:
+      - etcd2_data:/bitnami/etcd
+
+  etcd3:
+    image: bitnami/etcd:latest
+    container_name: etcd3
+    networks:
+      - etcd-net
+    ports:
+      - "23791:2379" # Map client port (different host port to avoid conflict)
+      - "23801:2380" # Map peer port (different host port to avoid conflict)
+    environment:
+      - ETCD_NAME=etcd3
+      - ETCD_INITIAL_CLUSTER_STATE=new
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd3:2380
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd3:2379
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_INITIAL_CLUSTER=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      - ALLOW_NONE_AUTHENTICATION=yes
+    volumes:
+      - etcd3_data:/bitnami/etcd
